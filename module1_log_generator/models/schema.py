@@ -1,12 +1,3 @@
-"""
-Pydantic models for service graph YAML validation.
-
-ServiceConfig  — one service's fields.
-ServiceGraphConfig — the complete parsed YAML (list of services + globals).
-
-These are the canonical schema models used by config/parser.py and
-importable by core/ and failures/ without pulling in YAML-parsing code.
-"""
 
 from __future__ import annotations
 
@@ -21,8 +12,7 @@ class ResourceLimits(BaseModel):
 
 
 class ServiceConfig(BaseModel):
-    """Represents a single microservice in the graph."""
-
+    
     name: str = Field(..., description="Unique service identifier")
     instances: int = Field(default=1, ge=1, description="Number of pods/replicas")
     dependencies: list[str] = Field(
@@ -108,7 +98,6 @@ class ServiceConfig(BaseModel):
 
 
 class ServiceGraphConfig(BaseModel):
-    """The full parsed service graph YAML."""
 
     services: list[ServiceConfig] = Field(..., min_length=1)
     allow_cycles: bool = Field(
