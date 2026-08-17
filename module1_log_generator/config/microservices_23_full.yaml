@@ -1,0 +1,396 @@
+services:
+- name: feature-store
+  instances: 5
+  dependencies: []
+  normal_latency_ms:
+  - 14.9
+  - 27.7
+  log_volume_per_sec: 12
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: elasticsearch
+  instances: 3
+  dependencies: []
+  normal_latency_ms:
+  - 3.8
+  - 28.4
+  log_volume_per_sec: 7
+  normal_error_rate: 0.0005
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: logging-service
+  instances: 5
+  dependencies:
+  - elasticsearch
+  - feature-store
+  normal_latency_ms:
+  - 32.6
+  - 38.3
+  log_volume_per_sec: 11
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: scheduler-service
+  instances: 4
+  dependencies:
+  - elasticsearch
+  normal_latency_ms:
+  - 18.4
+  - 51.5
+  log_volume_per_sec: 19
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: cron-service
+  instances: 3
+  dependencies:
+  - elasticsearch
+  - feature-store
+  normal_latency_ms:
+  - 8.5
+  - 48.4
+  log_volume_per_sec: 5
+  normal_error_rate: 0.0005
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: forecast-service
+  instances: 4
+  dependencies:
+  - cron-service
+  normal_latency_ms:
+  - 27.0
+  - 115.0
+  log_volume_per_sec: 10
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: review-service
+  instances: 5
+  dependencies:
+  - logging-service
+  - cron-service
+  - scheduler-service
+  normal_latency_ms:
+  - 43.3
+  - 105.5
+  log_volume_per_sec: 15
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: recommendation-service
+  instances: 2
+  dependencies:
+  - elasticsearch
+  - logging-service
+  - scheduler-service
+  normal_latency_ms:
+  - 33.6
+  - 89.1
+  log_volume_per_sec: 29
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: billing-service
+  instances: 3
+  dependencies:
+  - logging-service
+  - cron-service
+  - scheduler-service
+  normal_latency_ms:
+  - 57.0
+  - 73.2
+  log_volume_per_sec: 14
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: analytics-service
+  instances: 3
+  dependencies:
+  - logging-service
+  - feature-store
+  - cron-service
+  - scheduler-service
+  normal_latency_ms:
+  - 65.9
+  - 116.1
+  log_volume_per_sec: 13
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: shipping-service
+  instances: 2
+  dependencies:
+  - logging-service
+  - scheduler-service
+  normal_latency_ms:
+  - 62.4
+  - 76.1
+  log_volume_per_sec: 20
+  normal_error_rate: 0.001
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: address-service
+  instances: 5
+  dependencies:
+  - cron-service
+  - scheduler-service
+  normal_latency_ms:
+  - 67.3
+  - 96.7
+  log_volume_per_sec: 12
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: driver-service
+  instances: 4
+  dependencies:
+  - feature-store
+  - scheduler-service
+  normal_latency_ms:
+  - 45.4
+  - 96.0
+  log_volume_per_sec: 9
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: leave-service
+  instances: 2
+  dependencies:
+  - cron-service
+  normal_latency_ms:
+  - 63.3
+  - 95.4
+  log_volume_per_sec: 24
+  normal_error_rate: 0.001
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: order-service
+  instances: 2
+  dependencies:
+  - logging-service
+  - feature-store
+  normal_latency_ms:
+  - 50.4
+  - 79.8
+  log_volume_per_sec: 26
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: cart-service
+  instances: 4
+  dependencies:
+  - cron-service
+  normal_latency_ms:
+  - 47.5
+  - 89.5
+  log_volume_per_sec: 16
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: reporting-aggregation-service
+  instances: 3
+  dependencies:
+  - cart-service
+  - shipping-service
+  - scheduler-service
+  normal_latency_ms:
+  - 35.1
+  - 152.5
+  log_volume_per_sec: 20
+  normal_error_rate: 0.001
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: finance-orchestration-service
+  instances: 2
+  dependencies:
+  - forecast-service
+  normal_latency_ms:
+  - 102.4
+  - 179.7
+  log_volume_per_sec: 27
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: customer-360-service
+  instances: 3
+  dependencies:
+  - logging-service
+  - analytics-service
+  - leave-service
+  normal_latency_ms:
+  - 93.3
+  - 170.6
+  log_volume_per_sec: 19
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: seller-orchestration-service
+  instances: 4
+  dependencies:
+  - driver-service
+  - leave-service
+  normal_latency_ms:
+  - 72.4
+  - 179.0
+  log_volume_per_sec: 26
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: support-orchestration-service
+  instances: 2
+  dependencies:
+  - cart-service
+  normal_latency_ms:
+  - 48.2
+  - 153.9
+  log_volume_per_sec: 18
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: admin-gateway
+  instances: 2
+  dependencies:
+  - reporting-aggregation-service
+  normal_latency_ms:
+  - 14.7
+  - 48.5
+  log_volume_per_sec: 75
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: public-api-gateway
+  instances: 2
+  dependencies:
+  - customer-360-service
+  - support-orchestration-service
+  - finance-orchestration-service
+  normal_latency_ms:
+  - 37.2
+  - 65.4
+  log_volume_per_sec: 70
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+allow_cycles: false
+simulation_seed: 42
+global_failure_injection_rate: 0.0001

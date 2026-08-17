@@ -1,0 +1,860 @@
+services:
+- name: config-store
+  instances: 4
+  dependencies: []
+  normal_latency_ms:
+  - 12.1
+  - 19.5
+  log_volume_per_sec: 9
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: mysql-db
+  instances: 6
+  dependencies: []
+  normal_latency_ms:
+  - 3.3
+  - 19.8
+  log_volume_per_sec: 7
+  normal_error_rate: 0.0005
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: timeseries-db
+  instances: 7
+  dependencies: []
+  normal_latency_ms:
+  - 9.1
+  - 28.5
+  log_volume_per_sec: 11
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: cassandra-db
+  instances: 6
+  dependencies: []
+  normal_latency_ms:
+  - 12.7
+  - 21.7
+  log_volume_per_sec: 12
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: media-storage-service
+  instances: 5
+  dependencies:
+  - cassandra-db
+  - config-store
+  normal_latency_ms:
+  - 13.7
+  - 54.9
+  log_volume_per_sec: 6
+  normal_error_rate: 0.0005
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: encryption-service
+  instances: 4
+  dependencies:
+  - cassandra-db
+  - config-store
+  normal_latency_ms:
+  - 11.5
+  - 46.1
+  log_volume_per_sec: 19
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: auth-service
+  instances: 4
+  dependencies:
+  - cassandra-db
+  - timeseries-db
+  - config-store
+  - mysql-db
+  normal_latency_ms:
+  - 26.6
+  - 40.1
+  log_volume_per_sec: 15
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: geo-service
+  instances: 3
+  dependencies:
+  - mysql-db
+  normal_latency_ms:
+  - 11.9
+  - 44.0
+  log_volume_per_sec: 11
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: logging-service
+  instances: 5
+  dependencies:
+  - cassandra-db
+  normal_latency_ms:
+  - 18.6
+  - 48.1
+  log_volume_per_sec: 6
+  normal_error_rate: 0.0005
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: search-index-service
+  instances: 5
+  dependencies:
+  - cassandra-db
+  - config-store
+  normal_latency_ms:
+  - 30.3
+  - 53.9
+  log_volume_per_sec: 20
+  normal_error_rate: 0.001
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: feature-flag-service
+  instances: 5
+  dependencies:
+  - timeseries-db
+  normal_latency_ms:
+  - 15.8
+  - 44.1
+  log_volume_per_sec: 22
+  normal_error_rate: 0.001
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: fraud-detection-service
+  instances: 5
+  dependencies:
+  - cassandra-db
+  - geo-service
+  - encryption-service
+  normal_latency_ms:
+  - 16.5
+  - 85.1
+  log_volume_per_sec: 13
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: reconciliation-service
+  instances: 5
+  dependencies:
+  - geo-service
+  - logging-service
+  - encryption-service
+  - media-storage-service
+  normal_latency_ms:
+  - 49.8
+  - 71.9
+  log_volume_per_sec: 12
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: recommendation-service
+  instances: 5
+  dependencies:
+  - geo-service
+  - cassandra-db
+  - encryption-service
+  - auth-service
+  - media-storage-service
+  normal_latency_ms:
+  - 32.2
+  - 107.5
+  log_volume_per_sec: 16
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: travel-service
+  instances: 2
+  dependencies:
+  - geo-service
+  - feature-flag-service
+  - auth-service
+  - media-storage-service
+  - config-store
+  normal_latency_ms:
+  - 67.5
+  - 85.9
+  log_volume_per_sec: 28
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: settlement-service
+  instances: 3
+  dependencies:
+  - mysql-db
+  - feature-flag-service
+  normal_latency_ms:
+  - 25.5
+  - 68.6
+  log_volume_per_sec: 15
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: fleet-service
+  instances: 4
+  dependencies:
+  - mysql-db
+  - geo-service
+  - search-index-service
+  normal_latency_ms:
+  - 39.4
+  - 81.0
+  log_volume_per_sec: 13
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: tag-service
+  instances: 2
+  dependencies:
+  - feature-flag-service
+  normal_latency_ms:
+  - 65.6
+  - 73.2
+  log_volume_per_sec: 17
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: billing-service
+  instances: 4
+  dependencies:
+  - geo-service
+  - encryption-service
+  - search-index-service
+  - media-storage-service
+  normal_latency_ms:
+  - 58.6
+  - 80.2
+  log_volume_per_sec: 29
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: tax-service
+  instances: 5
+  dependencies:
+  - feature-flag-service
+  normal_latency_ms:
+  - 56.1
+  - 85.7
+  log_volume_per_sec: 29
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: aml-service
+  instances: 4
+  dependencies:
+  - cassandra-db
+  - logging-service
+  - media-storage-service
+  - search-index-service
+  normal_latency_ms:
+  - 58.2
+  - 73.0
+  log_volume_per_sec: 28
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: import-service
+  instances: 5
+  dependencies:
+  - geo-service
+  - encryption-service
+  - search-index-service
+  - logging-service
+  normal_latency_ms:
+  - 29.2
+  - 109.9
+  log_volume_per_sec: 22
+  normal_error_rate: 0.001
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: driver-service
+  instances: 5
+  dependencies:
+  - logging-service
+  - mysql-db
+  - feature-flag-service
+  - auth-service
+  - search-index-service
+  normal_latency_ms:
+  - 58.6
+  - 72.0
+  log_volume_per_sec: 15
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: invoice-service
+  instances: 4
+  dependencies:
+  - geo-service
+  - logging-service
+  - timeseries-db
+  - auth-service
+  - search-index-service
+  normal_latency_ms:
+  - 24.5
+  - 78.6
+  log_volume_per_sec: 18
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: forecast-service
+  instances: 3
+  dependencies:
+  - logging-service
+  - auth-service
+  - search-index-service
+  normal_latency_ms:
+  - 42.1
+  - 77.5
+  log_volume_per_sec: 21
+  normal_error_rate: 0.001
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: etl-service
+  instances: 2
+  dependencies:
+  - logging-service
+  - encryption-service
+  - search-index-service
+  - feature-flag-service
+  normal_latency_ms:
+  - 52.4
+  - 91.0
+  log_volume_per_sec: 10
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: download-service
+  instances: 5
+  dependencies:
+  - geo-service
+  - encryption-service
+  - timeseries-db
+  - search-index-service
+  normal_latency_ms:
+  - 39.8
+  - 95.4
+  log_volume_per_sec: 25
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: category-service
+  instances: 4
+  dependencies:
+  - geo-service
+  - timeseries-db
+  - auth-service
+  - search-index-service
+  normal_latency_ms:
+  - 27.1
+  - 105.4
+  log_volume_per_sec: 11
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: subscription-service
+  instances: 4
+  dependencies:
+  - encryption-service
+  - search-index-service
+  normal_latency_ms:
+  - 53.0
+  - 118.8
+  log_volume_per_sec: 11
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: hr-service
+  instances: 3
+  dependencies:
+  - encryption-service
+  - auth-service
+  normal_latency_ms:
+  - 30.9
+  - 104.7
+  log_volume_per_sec: 16
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: routing-service
+  instances: 5
+  dependencies:
+  - media-storage-service
+  normal_latency_ms:
+  - 51.6
+  - 74.1
+  log_volume_per_sec: 11
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: leave-service
+  instances: 2
+  dependencies:
+  - cassandra-db
+  - logging-service
+  normal_latency_ms:
+  - 38.1
+  - 77.2
+  log_volume_per_sec: 16
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: ml-inference-service
+  instances: 4
+  dependencies:
+  - geo-service
+  - logging-service
+  - media-storage-service
+  - feature-flag-service
+  normal_latency_ms:
+  - 17.8
+  - 75.3
+  log_volume_per_sec: 10
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: notification-orchestration-service
+  instances: 2
+  dependencies:
+  - subscription-service
+  - travel-service
+  normal_latency_ms:
+  - 72.0
+  - 163.8
+  log_volume_per_sec: 34
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: supply-chain-service
+  instances: 2
+  dependencies:
+  - hr-service
+  - search-index-service
+  - aml-service
+  - forecast-service
+  - etl-service
+  normal_latency_ms:
+  - 29.7
+  - 176.9
+  log_volume_per_sec: 40
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: cart-aggregation-service
+  instances: 2
+  dependencies:
+  - tag-service
+  - leave-service
+  - mysql-db
+  normal_latency_ms:
+  - 37.2
+  - 116.0
+  log_volume_per_sec: 15
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: workforce-management-service
+  instances: 2
+  dependencies:
+  - forecast-service
+  normal_latency_ms:
+  - 71.0
+  - 125.1
+  log_volume_per_sec: 19
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: order-orchestration-service
+  instances: 4
+  dependencies:
+  - etl-service
+  - ml-inference-service
+  - media-storage-service
+  - recommendation-service
+  normal_latency_ms:
+  - 86.1
+  - 150.9
+  log_volume_per_sec: 35
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: onboarding-service
+  instances: 2
+  dependencies:
+  - forecast-service
+  - travel-service
+  normal_latency_ms:
+  - 75.2
+  - 172.9
+  log_volume_per_sec: 12
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: analytics-pipeline-service
+  instances: 3
+  dependencies:
+  - fleet-service
+  normal_latency_ms:
+  - 71.1
+  - 166.4
+  log_volume_per_sec: 24
+  normal_error_rate: 0.001
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: recommendation-engine-service
+  instances: 4
+  dependencies:
+  - etl-service
+  normal_latency_ms:
+  - 79.2
+  - 175.6
+  log_volume_per_sec: 27
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: search-aggregation-service
+  instances: 2
+  dependencies:
+  - etl-service
+  - reconciliation-service
+  - routing-service
+  - recommendation-service
+  normal_latency_ms:
+  - 81.9
+  - 149.3
+  log_volume_per_sec: 12
+  normal_error_rate: 0.001
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: marketplace-service
+  instances: 3
+  dependencies:
+  - ml-inference-service
+  - hr-service
+  normal_latency_ms:
+  - 26.6
+  - 161.8
+  log_volume_per_sec: 28
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: edge-router
+  instances: 2
+  dependencies:
+  - cart-aggregation-service
+  normal_latency_ms:
+  - 29.5
+  - 67.5
+  log_volume_per_sec: 67
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: mobile-bff
+  instances: 4
+  dependencies:
+  - onboarding-service
+  - recommendation-engine-service
+  - supply-chain-service
+  - auth-service
+  - analytics-pipeline-service
+  normal_latency_ms:
+  - 35.7
+  - 49.9
+  log_volume_per_sec: 61
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: api-gateway
+  instances: 3
+  dependencies:
+  - analytics-pipeline-service
+  - search-aggregation-service
+  - notification-orchestration-service
+  normal_latency_ms:
+  - 19.4
+  - 49.7
+  log_volume_per_sec: 62
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: partner-api-gateway
+  instances: 4
+  dependencies:
+  - search-aggregation-service
+  normal_latency_ms:
+  - 11.6
+  - 55.6
+  log_volume_per_sec: 78
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+- name: graphql-gateway
+  instances: 4
+  dependencies:
+  - order-orchestration-service
+  - recommendation-engine-service
+  - workforce-management-service
+  - notification-orchestration-service
+  normal_latency_ms:
+  - 37.8
+  - 53.1
+  log_volume_per_sec: 61
+  normal_error_rate: 0.002
+  peak_hours:
+  - 9
+  - 18
+  log_level_distribution:
+    DEBUG: 0.1
+    INFO: 0.7
+    WARN: 0.15
+    ERROR: 0.04
+    FATAL: 0.01
+allow_cycles: false
+simulation_seed: 42
+global_failure_injection_rate: 0.0001

@@ -1,0 +1,99 @@
+
+# Example 5-service e-commerce system (§5.1)
+services:
+  - name: api-gateway
+    instances: 2
+    dependencies: [auth-service, order-service]
+    normal_latency_ms: [5, 20]
+    normal_error_rate: 0.0005
+    log_volume_per_sec: 5
+    log_level_distribution:
+      DEBUG: 0.05
+      INFO: 0.80
+      WARN: 0.10
+      ERROR: 0.04
+      FATAL: 0.01
+
+  - name: auth-service
+    instances: 2
+    dependencies: [database, cache]
+    normal_latency_ms: [10, 50]
+    normal_error_rate: 0.001
+    log_volume_per_sec: 2
+    log_level_distribution:
+      DEBUG: 0.10
+      INFO: 0.70
+      WARN: 0.15
+      ERROR: 0.04
+      FATAL: 0.01
+
+  - name: payment-service
+    instances: 3
+    dependencies: [auth-service, database]
+    normal_latency_ms: [50, 200]
+    normal_error_rate: 0.002
+    log_volume_per_sec: 2
+    peak_hours: [9, 18]
+    log_level_distribution:
+      DEBUG: 0.10
+      INFO: 0.70
+      WARN: 0.15
+      ERROR: 0.04
+      FATAL: 0.01
+
+  - name: order-service
+    instances: 2
+    dependencies: [payment-service, inventory-service]
+    normal_latency_ms: [30, 100]
+    normal_error_rate: 0.001
+    log_volume_per_sec: 2
+    log_level_distribution:
+      DEBUG: 0.10
+      INFO: 0.70
+      WARN: 0.15
+      ERROR: 0.04
+      FATAL: 0.01
+
+  - name: inventory-service
+    instances: 2
+    dependencies: [database, cache]
+    normal_latency_ms: [20, 80]
+    normal_error_rate: 0.001
+    log_volume_per_sec: 2
+    log_level_distribution:
+      DEBUG: 0.10
+      INFO: 0.70
+      WARN: 0.15
+      ERROR: 0.04
+      FATAL: 0.01
+
+  - name: database
+    instances: 1
+    dependencies: []
+    normal_latency_ms: [5, 20]
+    normal_error_rate: 0.0001
+    log_volume_per_sec: 10
+    log_level_distribution:
+      DEBUG: 0.10
+      INFO: 0.75
+      WARN: 0.12
+      ERROR: 0.02
+      FATAL: 0.01
+
+  - name: cache
+    instances: 2
+    dependencies: []
+    normal_latency_ms: [1, 5]
+    normal_error_rate: 0.0001
+    log_volume_per_sec: 5
+    log_level_distribution:
+      DEBUG: 0.10
+      INFO: 0.80
+      WARN: 0.08
+      ERROR: 0.01
+      FATAL: 0.01
+
+allow_cycles: false
+simulation_seed: 42
+global_failure_injection_rate: 0.0001
+
