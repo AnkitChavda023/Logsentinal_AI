@@ -1,0 +1,32 @@
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Python cache/build artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environment / secrets
+.env
+.env.*
+
+# Data & large artifacts
+data/
+logs/
+mlruns/
+*.zip
+*.csv
+*.parquet
+*.log
+
+# OS / editor cruft
+.DS_Store
+*.swp
+
+# Scratch / temp files
+temporary.txt
