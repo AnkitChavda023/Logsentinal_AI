@@ -1,8 +1,4 @@
-
-
 from __future__ import annotations
-
-
 DEFAULT_FAILURE_INJECTION_RATE: float = 1 / 10_000
 
 DEFAULT_PARQUET_FLUSH_ROWS: int = 100_000
@@ -41,7 +37,6 @@ DEFAULT_LOG_LEVEL_DISTRIBUTION: dict[str, float] = {
 }
 
 DEFAULT_PEAK_MULTIPLIER: float = 3.0
-"""Traffic volume multiplier during peak_hours (§5.1)."""
 
 DEFAULT_OFF_PEAK_MULTIPLIER: float = 1.0
 
@@ -51,11 +46,9 @@ DEFAULT_MEMORY_MB: int = 2048
 # Metric sampling baselines
 DEFAULT_CPU_BASE: float = 0.25
 DEFAULT_MEMORY_BASE_FRACTION: float = 0.40
-"""Memory usage as a fraction of resource_limits.memory_mb."""
 
 # Trace simulation
 DEFAULT_MAX_TRACE_DEPTH: int = 10
-"""Maximum number of service hops in a single trace path."""
 
 # Simulation clock
 SECONDS_PER_HOUR: int = 3_600

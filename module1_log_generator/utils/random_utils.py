@@ -23,7 +23,6 @@ def sample_latency(mean: float, std: float, low: float, high: float) -> float:
 
 
 def sample_poisson(lam: float) -> int:
-    """Sample number of arrivals per second from a Poisson distribution."""
     return int(_rng.poisson(lam=max(lam, 0.0)))
 
 

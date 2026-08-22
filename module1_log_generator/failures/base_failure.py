@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -18,7 +17,6 @@ class BaseFailure(ABC):
 
     @abstractmethod
     def apply(self, entry: LogEntry, elapsed_seconds: float) -> LogEntry:
-
 
     def is_resolved(self) -> bool:
         return self.event.resolved
