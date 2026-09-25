@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import logging
-import random
-import string
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
@@ -16,6 +14,7 @@ from module1_log_generator.core.metric_sampler import MetricSampler
 from module1_log_generator.core.service_graph import ServiceGraph
 from module1_log_generator.core.trace_simulator import TraceSimulator
 from module1_log_generator.core.traffic_model import TrafficModel
+from module1_log_generator.core.user_pool import UserPool
 from module1_log_generator.failures.failure_injector import FailureInjector
 from module1_log_generator.failures.failure_types import FailureType
 from module1_log_generator.models.failure_models import FailureSchedule
@@ -36,12 +35,14 @@ class GeneratorPipeline:
         output_format: str = "parquet",
         output_dir: str = "data/generated",
         seed: Optional[int] = None,
+        anomaly_rate: Optional[float] = None,
     ) -> None:
         self._config = config
         self._scale = scale
         self._output_format = output_format
         self._output_dir = Path(output_dir)
         self._output_dir.mkdir(parents=True, exist_ok=True)
+        self._anomaly_rate = anomaly_rate
 
         # Seed RNG
         effective_seed = seed if seed is not None else config.simulation_seed
@@ -54,6 +55,10 @@ class GeneratorPipeline:
         self._metric_sampler = MetricSampler()
         self._trace_simulator = TraceSimulator(
             self._graph, config, self._metric_sampler
+        )
+        self._user_pool = UserPool(
+            num_users=config.num_synthetic_users,
+            activity_skew=config.user_activity_skew,
         )
 
     def run(self, duration_hours: float) -> None:
@@ -141,15 +146,18 @@ class GeneratorPipeline:
             request_count = self._traffic_model.requests_this_second(svc, sim_time)
 
             for _ in range(request_count):
-                user_id = f"user_{random.randint(10000, 99999)}"
+                
+                request_time = sim_time + timedelta(milliseconds=uniform(0.0, 1000.0))
+
+                user_id = self._user_pool.pick_user(request_time)
+
                 trace_entries = self._trace_simulator.simulate_trace(
                     entry_service=svc.name,
-                    sim_time=sim_time,
+                    sim_time=request_time,
                     user_id=user_id,
+                    injector=injector,
                 )
-                # Apply any active failures to each entry
-                mutated = [injector.apply_to_entry(e) for e in trace_entries]
-                all_entries.extend(mutated)
+                all_entries.extend(trace_entries)
 
         return all_entries
 
@@ -161,6 +169,43 @@ class GeneratorPipeline:
         rng = get_rng()
         failure_types = list(FailureType)
         sched_counter = 0
+
+        if self._anomaly_rate is not None:
+            target_rate = max(0.0, min(1.0, float(self._anomaly_rate)))
+            if target_rate <= 0.0:
+                return []
+
+            effective_rate = target_rate / 1425.0
+
+            for svc in self._config.services:
+                expected_float = total_seconds * svc.log_volume_per_sec * effective_rate
+                base_failures = int(expected_float)
+                if rng.random() < (expected_float - base_failures):
+                    base_failures += 1
+                n_failures = base_failures
+
+                for _ in range(n_failures):
+                    sched_counter += 1
+                    max_off = max(120, total_seconds - 300)
+                    min_off = min(60, max_off - 1)
+                    offset = int(rng.integers(min_off, max_off))
+
+                    failure_type = failure_types[int(rng.integers(0, len(failure_types)))]
+                    max_dur = min(300, max(61, total_seconds - offset))
+                    min_dur = min(60, max_dur - 1)
+                    dur = float(rng.integers(min_dur, max_dur))
+
+                    schedule = FailureSchedule(
+                        schedule_id=f"SCHED-{sched_counter:04d}",
+                        service_name=svc.name,
+                        failure_type=failure_type.value,
+                        start_time=start_dt + timedelta(seconds=offset),
+                        duration_seconds=dur,
+                        params=self._build_failure_params(svc, failure_type, rng),
+                    )
+                    schedules.append(schedule)
+
+            return schedules
 
         for svc in self._config.services:
             rate = (

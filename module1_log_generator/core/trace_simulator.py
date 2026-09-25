@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import random
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from module1_log_generator.config.defaults import DEFAULT_MAX_TRACE_DEPTH, DEFAULT_LOG_LEVEL_DISTRIBUTION
 from module1_log_generator.core.metric_sampler import MetricSampler
@@ -19,6 +19,9 @@ from module1_log_generator.utils.constants import (
 from module1_log_generator.utils.ids import generate_span_id, generate_trace_id
 from module1_log_generator.utils.random_utils import choose_weighted, get_rng, uniform
 from module1_log_generator.utils.time_utils import elapsed_to_datetime
+
+if TYPE_CHECKING:
+    from module1_log_generator.failures.failure_injector import FailureInjector
 
 
 class TraceSimulator:
@@ -42,6 +45,7 @@ class TraceSimulator:
         entry_service: str,
         sim_time: datetime,
         user_id: Optional[str] = None,
+        injector: Optional["FailureInjector"] = None,
     ) -> list[LogEntry]:
         
         trace_id = generate_trace_id()
@@ -57,6 +61,7 @@ class TraceSimulator:
             depth=0,
             entries=entries,
             user_id=user_id,
+            injector=injector,
         )
         return entries
 
@@ -71,6 +76,7 @@ class TraceSimulator:
         depth: int,
         entries: list[LogEntry],
         user_id: Optional[str],
+        injector: Optional["FailureInjector"] = None,
     ) -> float:
 
         if depth > DEFAULT_MAX_TRACE_DEPTH:
@@ -130,14 +136,15 @@ class TraceSimulator:
             http_status=http_status,
             error_code="ERR_GENERIC" if is_error else None,
             user_id=user_id,
-            # NOT is_error: a baseline error at the configured
-            # normal_error_rate is normal system noise, not a ground-truth
-            # anomaly. Only failures/failure_injector.py — which knows
-            # whether a real failure is actually active on this service —
-            # is allowed to flip this to True (see FailureInjector.apply_to_entry).
+           
             is_anomaly=False,
             failure_type=None,
         )
+
+        if injector is not None:
+            entry = injector.apply_to_entry(entry)
+            latency_ms = entry.latency_ms
+
         entries.append(entry)
 
         # Recurse into dependencies
@@ -154,6 +161,7 @@ class TraceSimulator:
                     depth=depth + 1,
                     entries=entries,
                     user_id=user_id,
+                    injector=injector,
                 )
                 latency_ms += child_latency
 

@@ -11,13 +11,7 @@ if TYPE_CHECKING:
 
 
 def get_failure_class(failure_type: FailureType) -> Type["BaseFailure"]:
-    """
-    Return the BaseFailure subclass that implements the given FailureType.
-
-    Raises:
-        KeyError: if the FailureType has no registered implementation.
-    """
-    # Import here to avoid circular imports at module load time
+   
     from module1_log_generator.failures.latency_spike import LatencySpikeFailure
     from module1_log_generator.failures.timeout import TimeoutFailure
     from module1_log_generator.failures.connection_pool_exhaustion import (

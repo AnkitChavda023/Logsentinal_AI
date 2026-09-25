@@ -53,3 +53,21 @@ DEFAULT_MAX_TRACE_DEPTH: int = 10
 # Simulation clock
 SECONDS_PER_HOUR: int = 3_600
 SECONDS_PER_DAY: int = 86_400
+
+# Failure precursor window (see FailureInjector._apply_precursor): every
+# failure previously began at full DEGRADED-phase symptoms with zero
+# warning — the window immediately preceding onset was statistically
+# identical to any other normal window, so a downstream forecaster had
+# nothing to learn from. These control a pre-onset drift in
+# latency/cpu/memory that intensifies as start_time approaches — still not
+# label leakage (log_level, error_code, and is_anomaly are untouched; they
+# still flip only at the failure's own official onset), but deliberately
+# stronger than a bare-minimum "technically learnable" signal: with a
+# handful of hundred training windows total, Module 3 needs a clear signal
+# to find, not just a theoretically-present one. Widen/soften these later
+# once there's enough data volume that a subtler signal would still be
+# learnable.
+PRECURSOR_SECONDS: float = 600.0
+PRECURSOR_MAX_LATENCY_MULTIPLIER: float = 1.8
+PRECURSOR_MAX_CPU_MULTIPLIER: float = 1.6
+PRECURSOR_MAX_MEMORY_MULTIPLIER: float = 1.5

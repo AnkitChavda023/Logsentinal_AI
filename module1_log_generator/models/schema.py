@@ -113,6 +113,26 @@ class ServiceGraphConfig(BaseModel):
         ge=0.0,
         le=1.0,
     )
+    num_synthetic_users: int = Field(
+        default=2000,
+        ge=1,
+        description=(
+            "Size of the persistent synthetic user pool (see core/user_pool.py). "
+            "Requests draw a user_id from this fixed pool instead of a fresh "
+            "random label each time, so the same identity genuinely reappears "
+            "across requests over the simulation."
+        ),
+    )
+    user_activity_skew: float = Field(
+        default=1.2,
+        ge=0.0,
+        description=(
+            "Zipf exponent for user selection — 0.0 = uniform (every user "
+            "equally likely), higher = more traffic concentrated in a small "
+            "fraction of users. 1.2 is in the range commonly cited for real "
+            "web/app usage skew."
+        ),
+    )
 
     @model_validator(mode="after")
     def check_unique_names(self) -> "ServiceGraphConfig":

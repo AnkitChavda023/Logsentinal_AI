@@ -64,6 +64,13 @@ logging.basicConfig(
     help="Random seed for reproducible generation.",
 )
 @click.option(
+    "--anomaly-rate",
+    "-a",
+    default=None,
+    type=float,
+    help="Target overall anomaly rate (e.g. 0.05 for 5%, 0.10 for 10%, 0.18, 0.25, 0.33, 0.52).",
+)
+@click.option(
     "--visualize-only",
     is_flag=True,
     default=False,
@@ -77,6 +84,7 @@ def main(
     output_dir: str,
     hours: float | None,
     seed: int | None,
+    anomaly_rate: float | None,
     visualize_only: bool,
 ) -> None:
     from module1_log_generator.config.defaults import SCALE_PRESETS
@@ -105,6 +113,7 @@ def main(
         output_format=output_format,
         output_dir=output_dir,
         seed=seed,
+        anomaly_rate=anomaly_rate,
     )
     pipeline.run(duration_hours=hours)
 

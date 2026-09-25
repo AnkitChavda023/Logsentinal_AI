@@ -13,10 +13,11 @@ class BaseFailure(ABC):
 
     @abstractmethod
     def tick(self, elapsed_seconds: float) -> FailurePhase:
-
+        """Advance the failure state machine by one simulated second."""
 
     @abstractmethod
     def apply(self, entry: LogEntry, elapsed_seconds: float) -> LogEntry:
+        """Mutate a LogEntry to reflect the failure's current state."""
 
     def is_resolved(self) -> bool:
         return self.event.resolved

@@ -11,11 +11,11 @@ from module1_log_generator.utils.random_utils import sample_cpu, sample_latency,
 class MetricSampler:
 
     def sample_latency(self, service: ServiceConfig) -> float:
-
+        """[low, high] is the service's *typical* latency band — see
+        random_utils.sample_latency's docstring for why the actual sampled
+        value is log-normal, not bounded by [low, high] as a hard clip."""
         low, high = service.normal_latency_ms
-        mean = (low + high) / 2.0
-        std = (high - low) / 6.0  # ±3σ within [low, high]
-        return sample_latency(mean, std, low, high)
+        return sample_latency(low, high)
 
     def sample_cpu(self, service: ServiceConfig) -> float:
     
