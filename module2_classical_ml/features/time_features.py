@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from datetime import datetime
 from typing import Optional
 
@@ -43,8 +44,11 @@ class TimeFeatureExtractor:
             self._last_error[service] = timestamp
         self._last_log[service] = timestamp
 
+        hour_theta = 2.0 * math.pi * timestamp.hour / 24.0
+
         return {
-            "hour_of_day": float(timestamp.hour),
+            "hour_of_day_sin": math.sin(hour_theta),
+            "hour_of_day_cos": math.cos(hour_theta),
             "minute_of_hour": float(timestamp.minute),
             "day_of_week": float(timestamp.weekday()),
             "seconds_since_last_error": min(seconds_since_last_error, NO_PRIOR_EVENT_SECONDS),

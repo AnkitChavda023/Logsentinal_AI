@@ -44,11 +44,10 @@ def train(
     logger.info("Building engineered feature matrix (this walks every row through FeaturePipeline)...")
     X_raw, y = build_feature_matrix(df, adjacency=adjacency)
 
-    n = len(X_raw)
-    train_end = int(n * 0.80)
-    val_end = int(n * 0.90)
-    X_train, X_test = X_raw[:train_end], X_raw[val_end:]
-    y_train, y_test = y[:train_end], y[val_end:]
+    from sklearn.model_selection import train_test_split
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_raw, y, test_size=0.10, random_state=42, shuffle=True, stratify=y if len(np.unique(y)) > 1 else None
+    )
 
     X_train_normal = X_train[y_train == 0]
     logger.info("Training Autoencoder on %d normal samples (of %d total training rows)", len(X_train_normal), len(X_train))

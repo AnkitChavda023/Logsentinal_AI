@@ -13,7 +13,6 @@ class StatisticalThresholdDetector:
 
     def __init__(self, window_size: int = STATISTICAL_ROLLING_WINDOW_SIZE) -> None:
         self._window = window_size
-        # (service, metric) → deque of values
         self._history: dict[tuple[str, str], deque] = {}
 
     def score(

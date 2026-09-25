@@ -17,13 +17,6 @@ from module2_classical_ml.config.defaults import (
 
 
 class PolynomialRegressionAnomalyDetector:
-    """
-    Supervised High-Degree Polynomial Linear Regression detector for log telemetry.
-
-    Fits polynomial combinations of numerical telemetry features to predict anomaly
-    targets / labels (is_anomaly) using L2-regularized Ridge regression.
-    Predictions are bounded and output as calibrated anomaly scores in [0.0, 1.0].
-    """
 
     def __init__(
         self,
@@ -69,7 +62,7 @@ class PolynomialRegressionAnomalyDetector:
         y: np.ndarray,
         max_train_samples: Optional[int] = 100_000,
     ) -> None:
-        """Fit polynomial linear regression model against anomaly target labels."""
+
         X = np.asarray(X, dtype=np.float32)
         if X.ndim == 1:
             X = X.reshape(-1, 1)
@@ -96,7 +89,6 @@ class PolynomialRegressionAnomalyDetector:
         return self._regressor.predict(X_poly_scaled)
 
     def score(self, x: np.ndarray) -> float:
-        """Compute anomaly score in [0.0, 1.0] for a single sample."""
         if not self._is_trained:
             return 0.0
         x = np.asarray(x, dtype=np.float32).reshape(1, -1)
@@ -107,7 +99,6 @@ class PolynomialRegressionAnomalyDetector:
         return np.clip(preds, 0.0, 1.0).astype(np.float32)
 
     def score_batch(self, X: np.ndarray, batch_size: int = 50_000) -> np.ndarray:
-        """Compute anomaly score in [0.0, 1.0] for a batch of samples."""
         if not self._is_trained:
             return np.zeros(len(X), dtype=np.float32)
         X = np.asarray(X, dtype=np.float32)

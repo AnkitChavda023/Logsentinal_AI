@@ -14,8 +14,11 @@ from module2_classical_ml.features.trace_features import TraceFeatureExtractor
 from module2_classical_ml.features.topology_features import TopologyFeatureExtractor
 
 FEATURE_NAMES = [
-    # Group A — Time (5)
-    "hour_of_day", "minute_of_hour", "day_of_week",
+    # Group A — Time (6): hour_of_day is cyclically encoded as
+    # (sin, cos) of theta = 2*pi*hour/24 rather than a raw 0-23 integer,
+    # so 23:00 and 00:00 land next to each other in feature space instead
+    # of at opposite numeric extremes — see time_features.py's docstring.
+    "hour_of_day_sin", "hour_of_day_cos", "minute_of_hour", "day_of_week",
     "seconds_since_last_error", "seconds_since_last_log",
     # Group B — Latency (4)
     "latency_ms_raw", "latency_zscore",

@@ -43,11 +43,13 @@ def train(
     logger.info("Building engineered feature matrix (this walks every row through FeaturePipeline)...")
     X_raw, y = build_feature_matrix(df, adjacency=adjacency)
 
-    n = len(X_raw)
-    train_end = int(n * 0.80)
-    val_end = int(n * 0.90)
-    X_train, X_val, X_test = X_raw[:train_end], X_raw[train_end:val_end], X_raw[val_end:]
-    y_train, y_val, y_test = y[:train_end], y[train_end:val_end], y[val_end:]
+    from sklearn.model_selection import train_test_split
+    X_train_full, X_test, y_train_full, y_test = train_test_split(
+        X_raw, y, test_size=0.10, random_state=42, shuffle=True, stratify=y if len(np.unique(y)) > 1 else None
+    )
+    X_train, X_val, y_train, y_val = train_test_split(
+        X_train_full, y_train_full, test_size=1/9, random_state=42, shuffle=True, stratify=y_train_full if len(np.unique(y_train_full)) > 1 else None
+    )
 
     X_train_normal = X_train[y_train == 0]
     logger.info("Training on %d normal samples (of %d total training rows)", len(X_train_normal), len(X_train))
