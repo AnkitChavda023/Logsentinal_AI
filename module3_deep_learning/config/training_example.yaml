@@ -1,0 +1,88 @@
+# Example training config for Module 3, matching module1_log_generator's
+# default services_ecommerce.yaml topology (§5.1's 7-service e-commerce
+# system). Copy this file and edit service_list/service_dependencies to
+# match whatever config/*.yaml you generated data with in Module 1 —
+# the two must describe the SAME topology or service_ids in the trained
+# model won't line up with the graph.
+
+model:
+  embed_dim: 128
+  seq_hidden_dim: 256
+  sequence_encoder: all   # lstm | gru | birnn | all (all = §7.3's 3-way ensemble, averaged)
+  transformer_num_layers: 4
+  gnn_num_layers: 3
+  use_gat: true   # true = GAT (primary model, §7.5), false = GCN (ablation)
+  # Paper-grounded upgrades (LogRobust attention pooling, LogAnomaly
+  # quantitative branch, LogBERT masked-log-key auxiliary task — see
+  # config/defaults.py and models/full_model.py's LogSentinelModel) all
+  # default to true in code; not overridden here, so this smoke-test config
+  # also exercises all three by default.
+
+data:
+  service_list:
+    - api-gateway
+    - auth-service
+    - payment-service
+    - order-service
+    - inventory-service
+    - database
+    - cache
+  service_dependencies:
+    api-gateway: [auth-service, order-service]
+    auth-service: [database, cache]
+    payment-service: [auth-service, database]
+    order-service: [payment-service, inventory-service]
+    inventory-service: [database, cache]
+    database: []
+    cache: []
+  error_code_list:
+    - ERR_GENERIC
+    - DB_CONN_POOL_FULL
+    - UPSTREAM_FAILURE
+    - CASCADING_FAILURE
+    - CONFIG_DRIFT
+    - METHOD_NOT_FOUND
+    - SCHEMA_VALIDATION_FAILED
+    - DEADLOCK
+    - DEADLOCK_TIMEOUT
+    - LATENCY_SPIKE_CRITICAL
+    - TIMEOUT
+    - ZOMBIE_INSTANCE
+    - THUNDERING_HERD
+    - CONNECTION_REFUSED
+    - NO_ROUTE_TO_HOST
+    - RATE_LIMIT_EXCEEDED
+    - MEMORY_LEAK
+    - OOM_KILL
+  window_size_minutes: 5
+  max_seq_length: 300
+  train_ratio: 0.8
+  val_ratio: 0.1
+  test_ratio: 0.1
+  # train.py/evaluate.py default this to window_size_minutes +
+  # prediction_horizon_minutes (10) to prevent train/val/test windows from
+  # sharing raw log rows or label-horizon overlap at the split boundaries.
+  # This dummy/smoke-test dataset is short enough (~35 total windows) that
+  # the correct gap leaves val/test empty and train.py raises — 0 is fine
+  # here since this config exists to check the pipeline runs end to end,
+  # not to produce trustworthy metrics. Leave this unset (or >=10) for any
+  # config used for real evaluation, e.g. training_microservices23.yaml.
+  split_gap_minutes: 0
+
+training:
+  batch_size: 16
+  num_workers: 4
+  optimizer: adamw
+  learning_rate: 0.0001
+  weight_decay: 0.01
+  scheduler: reduce_on_plateau
+  gradient_clip: 1.0
+  num_epochs: 50
+  early_stopping_patience: 10
+  augment: true          # Gaussian noise + sequence dropout on the train split only
+  loss_weights:
+    failure: 1.0
+    type: 0.5
+    time: 0.5
+
+mlflow_experiment: logsentinel-module3

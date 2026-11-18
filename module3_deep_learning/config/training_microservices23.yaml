@@ -1,0 +1,140 @@
+# Training config for Module 3 matching module1_log_generator's
+# microservices_23_full.yaml topology (23 services). sequence_encoder is
+# overridden per-run by the Kaggle notebook (lstm/gru/birnn) — the value
+# here is just the file's own default if run standalone.
+#
+# Matches the 4-simulated-hour microservices23 dataset (generated with
+# module1's precursor-signal fix — see failure_injector.py's
+# _apply_precursor — so failures now have a genuine, if subtle, lead-up
+# instead of starting at full symptom strength with zero warning). ~231
+# raw windows before the chronological splitter's leakage-prevention gap
+# (window_size + prediction_horizon) trims the boundaries down further.
+
+model:
+  # Sized down from the original 2.1M-parameter default to match how
+  # little data this dataset actually has (a few hundred training
+  # windows) — the original size was a severe overparameterization risk
+  # (real evidence: precision/recall varied wildly between near-identical
+  # runs, e.g. GRU scoring 0 recall despite the best ROC-AUC of the three
+  # encoders, on a 4h/184-train-window run). Every field here is now
+  # actually wired through model_config_from_yaml (models/full_model.py)
+  # — previously only embed_dim/seq_hidden_dim/sequence_encoder/
+  # transformer_num_layers/gnn_num_layers/use_gat were read from YAML at
+  # all, so tuning gnn_hidden_dim or the dropout rates silently had zero
+  # effect.
+  embed_dim: 48
+  seq_hidden_dim: 96
+  seq_num_layers: 1
+  seq_dropout: 0.4
+  sequence_encoder: all   # lstm | gru | birnn | all — overridden per-run
+  transformer_num_layers: 2
+  transformer_num_heads: 4
+  transformer_ff_dim: 192
+  transformer_dropout: 0.2
+  gnn_hidden_dim: 96
+  gnn_num_layers: 2
+  gnn_dropout: 0.3
+  gat_dropout: 0.4
+  use_gat: true
+  # Paper-grounded upgrades (config/defaults.py has the exact papers/
+  # sections; models/full_model.py's LogSentinelModel has the adaptation
+  # to this project's dependent multi-service windows). All three default
+  # to true in code — listed explicitly here for discoverability, not
+  # because the defaults need overriding.
+  use_attention_pooling: true    # LogRobust §3.3 — replaces uniform mean-pool
+  use_quantitative_features: true  # LogAnomaly §3.3 — per-service count/stat branch
+  use_mlkp_auxiliary: true       # LogBERT §3.2 Task I — masked-service-id auxiliary loss
+  mlkp_mask_ratio: 0.15
+
+data:
+  service_list:
+    - feature-store
+    - elasticsearch
+    - logging-service
+    - scheduler-service
+    - cron-service
+    - forecast-service
+    - review-service
+    - recommendation-service
+    - billing-service
+    - analytics-service
+    - shipping-service
+    - address-service
+    - driver-service
+    - leave-service
+    - order-service
+    - cart-service
+    - reporting-aggregation-service
+    - finance-orchestration-service
+    - customer-360-service
+    - seller-orchestration-service
+    - support-orchestration-service
+    - admin-gateway
+    - public-api-gateway
+  service_dependencies:
+    feature-store: []
+    elasticsearch: []
+    logging-service: [elasticsearch, feature-store]
+    scheduler-service: [elasticsearch]
+    cron-service: [elasticsearch, feature-store]
+    forecast-service: [cron-service]
+    review-service: [logging-service, cron-service, scheduler-service]
+    recommendation-service: [elasticsearch, logging-service, scheduler-service]
+    billing-service: [logging-service, cron-service, scheduler-service]
+    analytics-service: [logging-service, feature-store, cron-service, scheduler-service]
+    shipping-service: [logging-service, scheduler-service]
+    address-service: [cron-service, scheduler-service]
+    driver-service: [feature-store, scheduler-service]
+    leave-service: [cron-service]
+    order-service: [logging-service, feature-store]
+    cart-service: [cron-service]
+    reporting-aggregation-service: [cart-service, shipping-service, scheduler-service]
+    finance-orchestration-service: [forecast-service]
+    customer-360-service: [logging-service, analytics-service, leave-service]
+    seller-orchestration-service: [driver-service, leave-service]
+    support-orchestration-service: [cart-service]
+    admin-gateway: [reporting-aggregation-service]
+    public-api-gateway: [customer-360-service, support-orchestration-service, finance-orchestration-service]
+  error_code_list:
+    - ERR_GENERIC
+    - DB_CONN_POOL_FULL
+    - UPSTREAM_FAILURE
+    - CASCADING_FAILURE
+    - CONFIG_DRIFT
+    - METHOD_NOT_FOUND
+    - SCHEMA_VALIDATION_FAILED
+    - DEADLOCK
+    - DEADLOCK_TIMEOUT
+    - LATENCY_SPIKE_CRITICAL
+    - TIMEOUT
+    - ZOMBIE_INSTANCE
+    - THUNDERING_HERD
+    - CONNECTION_REFUSED
+    - NO_ROUTE_TO_HOST
+    - RATE_LIMIT_EXCEEDED
+    - MEMORY_LEAK
+    - OOM_KILL
+  window_size_minutes: 5
+  max_seq_length: 300
+  train_ratio: 0.8
+  val_ratio: 0.1
+  test_ratio: 0.1
+
+training:
+  batch_size: 8
+  num_workers: 2
+  optimizer: adamw
+  learning_rate: 0.0001
+  weight_decay: 0.01
+  scheduler: reduce_on_plateau
+  gradient_clip: 1.0
+  num_epochs: 20
+  early_stopping_patience: 5
+  augment: true
+  loss_weights:
+    failure: 1.0
+    type: 0.5
+    time: 0.5
+    mlkp: 0.3
+
+mlflow_experiment: logsentinel-module3
